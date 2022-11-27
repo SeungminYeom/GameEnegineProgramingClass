@@ -66,3 +66,6 @@ TagManager:
   - name: Set
     uniqueID: 2040653705
     locked: 0
+  - name: Clicking
+    uniqueID: 725364185
+    locked: 0

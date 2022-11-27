@@ -133,3 +133,6 @@ MonoBehaviour:
     hiddenBy: 
     type: slot
     stagger: {x: 0, y: 0}
+  originSortingLayerName: 
+  setPos: {x: 0, y: 0, z: 0}
+  originPos: {x: 0, y: 0, z: 0}

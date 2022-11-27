@@ -68,11 +68,14 @@ public class LayoutProspector : MonoBehaviour
                     tSD.id = int.Parse(slotsX[i].att("id"));
                     if (slotsX[i].HasAtt("hiddenby"))
                     {
-                        string[] hidings = slotsX[i].att("hiddenby").Split(',');
-                        foreach (var s in hidings)
-                        {
-                            tSD.hiddenBy.Add(int.Parse(s));
-                        }
+                        //string[] hidings = slotsX[i].att("hiddenby").Split(',');
+                        //foreach (var s in hidings)
+                        //{
+                        //    tSD.hiddenBy.Add(int.Parse(s));
+                        //}
+                        string hiding = slotsX[i].att("hiddenby");
+                        if (hiding != "")
+                            tSD.hiddenBy.Add(int.Parse(hiding));
                     }
                     slotDefs.Add(tSD);
                     break;

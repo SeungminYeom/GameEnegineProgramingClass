@@ -60,7 +60,7 @@ public class Prospector : MonoBehaviour
         CardProspector cp;
         foreach (var tSD in layout.slotDefs)
         {
-            cp=Draw();
+            cp = Draw();
             cp.faceUp = tSD.faceup;
             cp.transform.parent = layoutAnchor;
             cp.transform.localPosition = new Vector3(
@@ -113,7 +113,7 @@ public class Prospector : MonoBehaviour
     void MoveToDiscard(CardProspector cd)
     {
         Debug.Log("discard");
-        cd.state = eCardState.discard;
+        //cd.state = eCardState.discard;
         discardPile.Add(cd);
         cd.transform.parent = layoutAnchor;
 
@@ -122,7 +122,7 @@ public class Prospector : MonoBehaviour
             layout.multiplier.y * layout.discardPile.y,
             -layout.discardPile.layerID + 0.5f);
 
-        cd.faceUp = false;
+        //cd.faceUp = false;
         cd.SetSortingLayerName(layout.discardPile.layerName);
         cd.SetSortOrder(-100 + discardPile.Count);
     }
@@ -139,8 +139,29 @@ public class Prospector : MonoBehaviour
             layout.multiplier.y * layout.discardPile.y,
             -layout.discardPile.layerID);
         cd.faceUp = true;
-        cd.SetSortingLayerName(layout.discardPile.layerName);
+        //cd.SetSortingLayerName(layout.discardPile.layerName);
+        cd.originPos = cd.transform.localPosition;
+        cd.SetSortingLayerName("Discard");
+        cd.transform.Find("back").GetComponent<SpriteRenderer>().sortingLayerName = "Discard";
         cd.SetSortOrder(0);
+    }
+
+    void MoveToDrawPile()
+    {
+        if (drawPile.Count > 0) return;
+        foreach (CardProspector cd in discardPile)
+        {
+            drawPile.Add(cd);
+            cd.transform.Find("back").GetComponent<SpriteRenderer>().sortingLayerName = "Draw";
+        }
+        discardPile.Clear();
+
+        //for (int i = 0; i < discardPile.Count; i++)
+        //{
+        //    drawPile.Add(discardPile.);
+        //    discardPile.RemoveAt(0);
+        //}
+        UpdateDrawPile();
     }
 
     void UpdateDrawPile()
@@ -166,38 +187,85 @@ public class Prospector : MonoBehaviour
         }
     }
 
-    public void CardClicked(CardProspector cd)
+    public void CardClicked(CardProspector cd, ref bool isSuitSame)
     {
         switch (cd.state)
         {
             case eCardState.target:
+                //cd.state = eCardState.set;
+                if (isSuitSame)
+                {
+                    cd.SetSortingLayerName("Set");
+                    cd.SetSortOrder(cd.rank);
+
+                    target = null;
+
+                    //CardManager의 Suit 리스트에 현재 카드를 저장
+                    CardManager.CM.getList(cd).Add(cd);
+
+                    cd.transform.position = cd.setPos;
+                    isSuitSame = false;
+                    cd.state = eCardState.set;
+                }
+                else
+                {
+                    cd.transform.position = cd.originPos;
+
+                    cd.SetSortingLayerName(cd.originSortingLayerName);
+                    cd.SetSortOrder(0);
+                }
                 break;
             case eCardState.drawpile:
+                //if (target != null) return;
                 MoveToTarget(Draw());
                 UpdateDrawPile();
+                MoveToDrawPile();
                 ScoreManager.EVENT(eScoreEvent.draw);
                 FloatingScoreHandler(eScoreEvent.draw);
                 break;
             case eCardState.tableau:
-                bool validMatch = true;
-                if (!cd.faceUp)
-                {
-                    validMatch = false;
-                }
-                if (!AdjacentRank(cd, target))
-                {
-                    validMatch = false;
-                }
-                if (!validMatch) return;
+                /*//bool validMatch = true;
+                //if (!cd.faceUp)
+                //{
+                //    validMatch = false;
+                //}
+                //if (!AdjacentRank(cd, target))
+                //{
+                //    validMatch = false;
+                //}
+                //if (!validMatch) return;
 
                 tableau.Remove(cd);
                 //MoveToTarget(cd);
+                cd.state = eCardState.set;
                 SetTableauFaces();
-                ScoreManager.EVENT(eScoreEvent.mine);
-                FloatingScoreHandler(eScoreEvent.mine);
+                //ScoreManager.EVENT(eScoreEvent.mine);
+                //FloatingScoreHandler(eScoreEvent.mine); */
+                //마우스를 놓았을 때 조건이 일치하는지 확인
+                if (isSuitSame)
+                {
+                    cd.SetSortingLayerName("Set");
+                    cd.SetSortOrder(cd.rank);
+
+                    //CardManager의 Suit 리스트에 현재 카드를 저장
+                    CardManager.CM.getList(cd).Add(cd);
+
+                    cd.transform.position = cd.setPos;
+                    isSuitSame = false;
+                    cd.state = eCardState.set;
+                }
+                // 카드를 원래 위치로 되돌림
+                else
+                {
+                    cd.transform.position = cd.originPos;
+
+                    cd.SetSortingLayerName(cd.originSortingLayerName);
+                    cd.SetSortOrder(0);
+                }
                 break;
         }
-        CheckForGameOver();
+        SetTableauFaces();
+        //CheckForGameOver();
     }
 
     void FloatingScoreHandler(eScoreEvent evt)
@@ -357,5 +425,6 @@ public class Prospector : MonoBehaviour
 
         drawPile = ConvertListCardsToListCardProspector(deck.cards);
         LayoutGame();
+        //target.transform.Find("back").GetComponent<SpriteRenderer>().sortingLayerName = ""
     }
 }
